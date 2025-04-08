@@ -7,11 +7,17 @@ import numbers
 import json
 import platform
 
-from enocean.communicators.serialcommunicator import SerialCommunicator
-from enocean.protocol.packet import RadioPacket
-from enocean.protocol.constants import PACKET, RETURN_CODE, RORG
-import enocean.utils
-import paho.mqtt.client as mqtt
+from bs4 import XMLParsedAsHTMLWarning
+import warnings
+
+warnings.filterwarnings("ignore", category=XMLParsedAsHTMLWarning)
+
+if True:
+    from enocean.communicators.serialcommunicator import SerialCommunicator
+    from enocean.protocol.packet import RadioPacket
+    from enocean.protocol.constants import PACKET, RETURN_CODE, RORG
+    import enocean.utils
+    import paho.mqtt.client as mqtt
 
 
 class Communicator:
