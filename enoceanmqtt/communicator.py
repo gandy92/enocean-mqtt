@@ -308,11 +308,12 @@ class Communicator:
         # Handling Auxiliary data RSSI
         rssi_data = {}
         if mqtt_publish_rssi:
+            rssi_tag = f"_RSSI_at_{mqtt_rssi_tag}" if mqtt_rssi_tag else "_RSSI_"
             if mqtt_publish_json:
-                rssi_data.update({"_RSSI_": mqtt_json["_RSSI_"]})
+                rssi_data.update({rssi_tag: mqtt_json["_RSSI_"]})
             else:
                 self.mqtt.publish(
-                    sensor["name"] + "/_RSSI_",
+                    sensor["name"] + "/" + rssi_tag,
                     mqtt_json["_RSSI_"],
                     retain=mqtt_set_retain,
                 )
@@ -337,9 +338,7 @@ class Communicator:
         # Publish auxiliary data
         print(f"  {rssi_data=}")
         if rssi_data:
-            topic = sensor["name"] + (
-                f"/STATE_at_{mqtt_rssi_tag}" if mqtt_rssi_tag else "/STATE"
-            )
+            topic = sensor["name"] + "/STATE"
             self.mqtt.publish(
                 topic,
                 json.dumps(rssi_data),
