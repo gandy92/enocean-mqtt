@@ -318,9 +318,6 @@ class Communicator:
                     retain=mqtt_set_retain,
                 )
         # Delete RSSI if already handled
-        print(
-            f"{sensor=} {channel_id=} {mqtt_publish_date=} {mqtt_publish_rssi=} {mqtt_publish_json=}"
-        )
         del mqtt_json["_RSSI_"]
 
         # Handling Auxiliary data _DATE_
@@ -336,7 +333,6 @@ class Communicator:
         del mqtt_json["_DATE_"]
 
         # Publish auxiliary data
-        print(f"  {rssi_data=}")
         if rssi_data:
             topic = sensor["name"] + "/STATE"
             self.mqtt.publish(
