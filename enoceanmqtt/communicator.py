@@ -284,65 +284,83 @@ class Communicator:
         # return None for default handling of the packet
         return None
 
+    def _sensor_enabled_for(self, sensor: dict, key: str, conf_key=None) -> bool:
+        return sensor.get(
+            key, self.conf.get(conf_key or f"mqtt_{key}", self.conf.get(key))
+        ) in (
+            "True",
+            "true",
+            "1",
+        )
+
     def _publish_mqtt(self, sensor, mqtt_json):
-        '''Publish decoded packet content to MQTT'''
-        # Publish using JSON format ?
-        mqtt_publish_json = str(sensor.get('publish_json')) in ("True", "true", "1")
-
-        # Publish RSSI ?
-        mqtt_publish_rssi = str(sensor.get('publish_rssi')) in ("True", "true", "1")
-
-        # Retain the to-be-published message ?
-        retain = str(sensor.get('persistent')) in ("True", "true", "1")
+        """Publish decoded packet content to MQTT"""
+        mqtt_publish_json = self._sensor_enabled_for(sensor, "publish_json")
+        mqtt_publish_rssi = self._sensor_enabled_for(sensor, "publish_rssi")
+        mqtt_publish_date = self._sensor_enabled_for(sensor, "publish_date")
+        mqtt_rssi_tag = self.conf.get("mqtt_rssi_tag", None)
+        mqtt_set_retain = self._sensor_enabled_for(sensor, "persistent")
 
         # Is grouping enabled on this sensor
-        channel_id = sensor.get('channel')
-        channel_id = channel_id.split('/') if channel_id not in (None, '') else []
+        channel_id = sensor.get("channel")
+        channel_id = channel_id.split("/") if channel_id not in (None, "") else []
 
         # Handling Auxiliary data RSSI
-        aux_data = {}
+        rssi_data = {}
         if mqtt_publish_rssi:
             if mqtt_publish_json:
-                # Keep _RSSI_ out of groups
-                if channel_id:
-                    aux_data.update({"_RSSI_": mqtt_json['_RSSI_']})
+                rssi_data.update({"_RSSI_": mqtt_json["_RSSI_"]})
             else:
-                self.mqtt.publish(sensor['name']+"/_RSSI_", mqtt_json['_RSSI_'], retain=retain)
+                self.mqtt.publish(
+                    sensor["name"] + "/_RSSI_",
+                    mqtt_json["_RSSI_"],
+                    retain=mqtt_set_retain,
+                )
         # Delete RSSI if already handled
-        if channel_id or not mqtt_publish_json or not mqtt_publish_rssi:
-            del mqtt_json['_RSSI_']
+        print(
+            f"{sensor=} {channel_id=} {mqtt_publish_date=} {mqtt_publish_rssi=} {mqtt_publish_json=}"
+        )
+        del mqtt_json["_RSSI_"]
 
         # Handling Auxiliary data _DATE_
-        if str(sensor.get('publish_date')) in ("True", "true", "1"):
-            # Publish _DATE_ both at device and group levels
-            if channel_id:
-                if mqtt_publish_json:
-                    aux_data.update({"_DATE_": mqtt_json['_DATE_']})
-                else:
-                    self.mqtt.publish(sensor['name']+"/_DATE_", mqtt_json['_DATE_'], retain=retain)
-        else:
-            del mqtt_json['_DATE_']
+        if mqtt_publish_date:
+            if mqtt_publish_json:
+                rssi_data.update({"_DATE_": mqtt_json["_DATE_"]})
+            else:
+                self.mqtt.publish(
+                    sensor["name"] + "/_DATE_",
+                    mqtt_json["_DATE_"],
+                    retain=mqtt_set_retain,
+                )
+        del mqtt_json["_DATE_"]
 
         # Publish auxiliary data
-        if aux_data:
-            self.mqtt.publish(sensor['name'], json.dumps(aux_data), retain=retain)
-
+        print(f"  {rssi_data=}")
+        if rssi_data:
+            topic = sensor["name"] + (
+                f"/STATE_at_{mqtt_rssi_tag}" if mqtt_rssi_tag else "/STATE"
+            )
+            self.mqtt.publish(
+                topic,
+                json.dumps(rssi_data),
+                retain=mqtt_set_retain,
+            )
         # Determine MQTT topic
-        topic = sensor['name']
+        topic = sensor["name"]
         for cur_id in channel_id:
-            if mqtt_json.get(cur_id) not in (None, ''):
+            if mqtt_json.get(cur_id) not in (None, ""):
                 topic += f"/{cur_id}{mqtt_json[cur_id]}"
                 del mqtt_json[cur_id]
 
         # Publish packet data to MQTT
         value = json.dumps(mqtt_json)
-        logging.debug("%s: Sent MQTT: %s", topic, value)
+        logging.debug(f"{topic}: Sent MQTT: {value}")
 
         if mqtt_publish_json:
-            self.mqtt.publish(topic, value, retain=retain)
+            self.mqtt.publish(topic + "/SENSOR", value, retain=mqtt_set_retain)
         else:
             for prop_name, value in mqtt_json.items():
-                self.mqtt.publish(f"{topic}/{prop_name}", value, retain=retain)
+                self.mqtt.publish(f"{topic}/{prop_name}", value, retain=mqtt_set_retain)
 
     def _read_packet(self, packet):
         '''interpret packet, read properties and publish to MQTT'''
