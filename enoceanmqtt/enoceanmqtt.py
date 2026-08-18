@@ -10,11 +10,14 @@ import copy
 import argparse
 from configparser import ConfigParser
 
+from dotenv import load_dotenv
+
 from enoceanmqtt.communicator import Communicator
 
 conf = {
     'debug': False,
     'config': ['/etc/enoceanmqtt.conf'],
+    'envfile': None,
     'logfile': os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'enoceanmqtt.log')
 }
 
@@ -24,6 +27,8 @@ def parse_args():
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     parser.add_argument('--debug', help='enable console debugging', action='store_true')
     parser.add_argument('--logfile', help='set log file location')
+    parser.add_argument('--envfile', help='set .env file location for MQTT_USER/MQTT_PASSWORD '
+                                           '(defaults to searching the current directory)')
     parser.add_argument('config', help='specify config file[s]', nargs='*')
     # parser.add_argument('--version', help='show application version',
     #     action='version', version='%(prog)s ' + VERSION)
@@ -106,9 +111,19 @@ def main():
     # setup logger
     setup_logging(conf['logfile'], logging.DEBUG if conf['debug'] else logging.INFO)
 
+    # load MQTT credentials from .env, if present
+    logging.debug("Loaded .env file: %s", load_dotenv(conf['envfile']))
+
     # load config file
     sensors, global_config = load_config_file(conf['config'])
     conf.update(global_config)
+
+    # MQTT_USER/MQTT_PASSWORD from the environment take precedence over the config file,
+    # so credentials never need to be stored in enoceanmqtt.conf
+    if os.environ.get('MQTT_USER'):
+        conf['mqtt_user'] = os.environ['MQTT_USER']
+    if os.environ.get('MQTT_PASSWORD'):
+        conf['mqtt_pwd'] = os.environ['MQTT_PASSWORD']
 
     # start working
     com = Communicator(conf, sensors)

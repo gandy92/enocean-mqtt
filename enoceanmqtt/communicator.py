@@ -47,7 +47,7 @@ class Communicator:
         self.mqtt.on_publish = self._on_mqtt_publish
         if "mqtt_user" in self.conf:
             logging.info("Authenticating: %s", self.conf["mqtt_user"])
-            self.mqtt.username_pw_set(self.conf["mqtt_user"], self.conf["mqtt_pwd"])
+            self.mqtt.username_pw_set(self.conf["mqtt_user"], self.conf.get("mqtt_pwd"))
         if str(self.conf.get("mqtt_ssl")) in ("True", "true", "1"):
             logging.info("Enabling SSL")
             ca_certs = (

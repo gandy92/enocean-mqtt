@@ -17,7 +17,9 @@ mqtt_prefix     = enocean/
 ## publish received packets as single MQTT message with a JSON payload
 # mqtt_publish_json = true
 
-## optionally also set mqtt_user and mqtt_pwd (don't use quotes).
+## MQTT credentials are best kept out of this file. Set MQTT_USER/MQTT_PASSWORD in a
+## .env file instead (see enoceanmqtt.env.sample) - those take precedence over the
+## settings below. mqtt_user/mqtt_pwd here only remain as a fallback (don't use quotes).
 # mqtt_user       = mqtt
 # mqtt_pwd        = password
 

@@ -13,3 +13,4 @@ dist
 *.priv
 venv
 enoceanmqtt.conf
+.env

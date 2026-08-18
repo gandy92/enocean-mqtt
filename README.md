@@ -76,6 +76,15 @@ Multiple config files can be specified as command line arguments. Values are mer
 
 This can be used to split security sensitive values from the device configs.
 
+### MQTT authentication ###
+
+If your broker requires authentication, copy [enoceanmqtt.env.sample](enoceanmqtt.env.sample) to `.env`
+and set `MQTT_USER`/`MQTT_PASSWORD` there. This is the recommended way to provide credentials, since
+`.env` is excluded from version control by `.gitignore`. `enoceanmqtt` picks it up automatically if
+present in the current directory (or a parent directory); use `--envfile` to point at a different
+location. Values from `.env` take precedence over `mqtt_user`/`mqtt_pwd` in the config file. If the
+broker allows anonymous access, no credentials need to be configured at all.
+
 ## Usage ##
 
 ### Reading EnOcean Messages ###

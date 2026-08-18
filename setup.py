@@ -8,6 +8,7 @@ import setuptools
 REQUIRES = [
     'enocean',
     'paho-mqtt>=2',
+    'python-dotenv',
 ]
 
 with open("README.md", "r") as fh:
