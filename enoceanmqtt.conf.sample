@@ -3,6 +3,9 @@
 enocean_port    = /dev/enocean
 log_packets     = 1
 
+## host, port, and credentials can instead be set via MQTT_HOST/MQTT_PORT/MQTT_USER/
+## MQTT_PASSWORD in a .env file (see enoceanmqtt.env.sample) - those take precedence
+## over the settings below, which then only remain as a fallback.
 mqtt_host       = localhost
 mqtt_port       = 1883
 mqtt_client_id  = enocean   # ensure that this is unique if you use multiple clients
@@ -17,9 +20,7 @@ mqtt_prefix     = enocean/
 ## publish received packets as single MQTT message with a JSON payload
 # mqtt_publish_json = true
 
-## MQTT credentials are best kept out of this file. Set MQTT_USER/MQTT_PASSWORD in a
-## .env file instead (see enoceanmqtt.env.sample) - those take precedence over the
-## settings below. mqtt_user/mqtt_pwd here only remain as a fallback (don't use quotes).
+## optionally also set mqtt_user and mqtt_pwd (don't use quotes) - prefer .env, see above.
 # mqtt_user       = mqtt
 # mqtt_pwd        = password
 

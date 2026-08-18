@@ -118,8 +118,12 @@ def main():
     sensors, global_config = load_config_file(conf['config'])
     conf.update(global_config)
 
-    # MQTT_USER/MQTT_PASSWORD from the environment take precedence over the config file,
-    # so credentials never need to be stored in enoceanmqtt.conf
+    # MQTT_HOST/MQTT_PORT/MQTT_USER/MQTT_PASSWORD from the environment take precedence over
+    # the config file, so broker connection details never need to be stored there
+    if os.environ.get('MQTT_HOST'):
+        conf['mqtt_host'] = os.environ['MQTT_HOST']
+    if os.environ.get('MQTT_PORT'):
+        conf['mqtt_port'] = os.environ['MQTT_PORT']
     if os.environ.get('MQTT_USER'):
         conf['mqtt_user'] = os.environ['MQTT_USER']
     if os.environ.get('MQTT_PASSWORD'):
